@@ -1,0 +1,4 @@
+## This file is used by git to ignore files
+
+# Ignore Visual Studio User-specific files
+*.suo
