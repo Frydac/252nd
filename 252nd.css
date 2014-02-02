@@ -1,2 +1,26 @@
 ﻿body {
+    font-family: Arial;
+}
+
+table {
+    border: 0;
+    border-collapse: collapse;
+}
+
+    table td {
+        padding: 5px 10px;
+        border: 1px solid black;
+        white-space: nowrap;
+    }
+
+.right_align {
+    text-align: right;
+}
+
+.red {
+    color: red;
+}
+
+table.alternate_color tr:nth-child(2n + 3) {
+    background-color: #EEE;
 }
