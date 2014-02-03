@@ -42,6 +42,11 @@ td.remove_left_border {
     border-left:0;
 }
 
+th {
+    /*background-color:#ddd;*/
+    padding:3px 5px;
+}
+
 
 button{
     font-family: monospace;

@@ -20,6 +20,14 @@
 //test your rest queries here
 //http://www.planetside-universe.com/api/census.php
 
+//----- Font info
+//▲ - U+25B2 BLACK UP-POINTING TRIANGLE
+//▼ - U+25BC BLACK DOWN-POINTING TRIANGLE
+//▴ - U+25B4 SMALL BLACK UP-POINTING TRIANGLE
+//▾ - U+25BE SMALL BLACK DOWN-POINTING TRIANGLE
+//Use &#x25B2; and &#x25BC; if you cannot include Unicode characters directly (use UTF-8!).
+var font_small_to_big = ' &#x25b2 ';
+
 //for testing purposes
 //frydac char id: "5428010618030935617"
 
@@ -370,27 +378,30 @@ function create_members_HTML(members) {
     //current date to produce month names
     var d = new Date();
 
-    var membersHTML = "<h2>Members</h2>";
+    var membersHTML = '<h2>Members</h2>';
     //start table with class alternate_color
     membersHTML += "<table>";
     //  membersHTML += "<thead>";
     //create a table row (tr) with table headers (th)
-    membersHTML += "<tr>"
-        + "<th>#</th>"
-        + "<th>Name</th>"
-        + "<th>Rank</th>"
-        + "<th>BR</th>"
-        + "<th>Member since</th>"
-        + "<th>Total</th>";
+    membersHTML += '  <tr>'
+        + '<th title="no sorting yet :)">#</th>'
+        + '<th title="no sorting yet :)">Name</th>'
+        + '<th title="no sorting yet :)">Rank</th>'
+        + '<th title="no sorting yet :)">BR</th>'
+        + '<th title="no sorting yet :)">Member since</th>'
+        + '<th title="no sorting yet :)">Total</th>';
     //get the number of months from one member and make the tableheaders with appropriate month names
     //console.log(members[0].playtime_per_month);
     for (month_index in members[0].playtime_per_month) {
-        membersHTML += "<th>"
-            + get_month_name((d.getMonth() + 12 - month_index) % 12)
-            + "</th>";
+        membersHTML += '<th title="no sorting yet :)">';
+        membersHTML += get_month_name((d.getMonth() + 12 - month_index) % 12);
+        //TODO adjust this when sorting is implemented
+        if (month_index == 1)
+            membersHTML += font_small_to_big;
+        membersHTML += '</th>';
     }
 
-    membersHTML += "</tr>";
+    membersHTML += "</tr>  ";
     //  membersHTML += "</thead>";
     //  membersHTML += "<tbody>";
     //loop through members with good info and create html table rows (tr) and table data (td)
