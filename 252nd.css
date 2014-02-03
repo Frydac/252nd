@@ -18,6 +18,9 @@ table td {
     white-space: nowrap;
 }
 
+table.extra_info td {
+    white-space: pre;
+}
 
 .right_align {
     text-align: right;
@@ -26,10 +29,6 @@ table td {
 .red {
     color: red;
 }
-
-/*table.alternate_color tr:nth-child(2n + 2) {
-    background-color: #eee;
-}*/
 
 tr.even_row {
     background-color: #eee;
