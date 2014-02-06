@@ -26,7 +26,7 @@
 //▴ - U+25B4 SMALL BLACK UP-POINTING TRIANGLE
 //▾ - U+25BE SMALL BLACK DOWN-POINTING TRIANGLE
 //Use &#x25B2; and &#x25BC; if you cannot include Unicode characters directly (use UTF-8!).
-var font_small_to_big = ' &#x25b2 ';
+var font_arrow_small_to_big = ' &#x25b2 ';
 
 //for testing purposes
 //frydac char id: "5428010618030935617"
@@ -64,14 +64,12 @@ function Outfit() {
         var result = this.members.filter(function (member) {
             return member.name === name;
         });
-        //I know for sure that the name is unique
+        //I know for sure that the name is unique so the array returned by the filter function has only 1 member
         return result[0];
     };
 
     //TODO: 
-    //this.leader = new Outfit_member;
     //this.prototype.sort_members
-    //this.prototype.find_member
 }
 
 
@@ -143,19 +141,46 @@ function initialize_document(outfit_name) {
         $.when.apply(this, members_stat_history_REST_responses).done(function () {
             //when we get here it means that all ajax requests in members_stat_history_REST_responses are done
             //extract_members_stat_history(arguments);
-            //need to rewrite this
+            //need to rewrite this sort
             outfit.members.sort(function (m1, m2) {
                 return parseInt(m1.playtime_per_month[1]) - parseInt(m2.playtime_per_month[1]);
             });
             var members_HTML = create_members_HTML(outfit.members);
             $("#members").html(members_HTML);
-
-            $(".show_extra").bind("click", show_member_extra_info);
+            $("table.members th").on("click", sort_members_test);
+            $(".show_extra").on("click", show_member_extra_info);
             create_broken_members_HTML(outfit.members_broken_info);
 
         });
     });
 
+
+}
+
+
+//object to store the sorted state
+var sorted_state = function () {
+    
+}
+
+//need an object to record the sorted state
+function sort_members_test() {
+    //console.log("sort_members_test");
+    //var table_header_text = $(this).text();
+    //if (table_header_text === "Rank") {
+    //    outfit.members.sort(function (m1, m2) {
+    //        return parseInt(m1.rank_ordinal) - parseInt(m2.rank_ordinal);
+    //    });
+    //    var members_HTML = create_members_HTML(outfit.members);
+    //    $("#members").html(members_HTML);
+
+    //    $("table.members th").on("click", sort_members_test);
+    //    $(".show_extra").on("click", show_member_extra_info);
+
+
+    //}
+
+    //console.log("this.text: " + table_header_text);
 
 }
 
@@ -187,17 +212,13 @@ function extract_outfit_information(ajaxResponse) {
     return outfit;
 }
 
-
-//-- TODO make fewer api calls, one way is to put more member char_ids in the query
 function get_api_info_members_stat_history(members) {
     var responses = [];
 
     var step_size = n_members_per_request;
 
-    //initialize counter
+    //initialize counter on the webpage
     update_get_stat_history_counter(step_size, members);
-
-
 
     for (member_index = 0; member_index < members.length; member_index += step_size) {
         var response = get_api_info_n_members_stat_history(members, member_index, step_size);
@@ -268,41 +289,6 @@ function get_api_info_n_members_stat_history(members, index, n) {
 
 
 }
-//
-//function get_api_info_member_stat_history(member) {
-//    var member_char_id = member.character_id;
-//    var stat_history_for_char_REST_URL = "http://census.soe.com/s:252nd/get/ps2:v2/character/?character_id="
-//        + member_char_id
-//        + "&c:resolve=stat_history";
-//    var response = $.ajax({
-//        url: stat_history_for_char_REST_URL,
-//        dataType: "jsonp",
-//        success: function (response, text_status, jqXHR) {
-//            //member_stat_history is an array of stats, they have a stat name of which the index seems different for different characters
-//            var member_stat_history = response.character_list[0].stats.stat_history;
-//            //get the right stat history array index
-//            for (index in member_stat_history) {
-//                if (member_stat_history[index].stat_name === "time") {
-//                    //add all the months, its a list of fields/properties, not an array
-//                    for (month_field in member_stat_history[index].month) {
-//                        if (member_stat_history[index].month.hasOwnProperty(month_field)) {
-//                            member.playtime_per_month.push(member_stat_history[index].month[month_field]);
-//                        }
-//                    }
-
-
-//                }
-//            }
-//            //this one is done, augment done counter
-//            member_playtimeinfo_done_counter += 1;
-//            //update counter in webpage to inform user
-//            $("#members").html("</br></br> Waiting for respons for member " + member_playtimeinfo_done_counter);
-//        }
-//    });
-
-//    //debug
-//    return response;
-//}
 
 //extracts member information and puts in the array members if they are ok, and in the array members_broken_info if they ar not ok
 function extract_member_list_information(ajaxResponse, members, members_broken_info) {
@@ -380,7 +366,7 @@ function create_members_HTML(members) {
 
     var membersHTML = '<h2>Members</h2>';
     //start table with class alternate_color
-    membersHTML += "<table>";
+    membersHTML += '<table class="members">';
     //  membersHTML += "<thead>";
     //create a table row (tr) with table headers (th)
     membersHTML += '  <tr>'
@@ -394,10 +380,11 @@ function create_members_HTML(members) {
     //console.log(members[0].playtime_per_month);
     for (month_index in members[0].playtime_per_month) {
         membersHTML += '<th title="no sorting yet :)">';
-        membersHTML += get_month_name((d.getMonth() + 12 - month_index) % 12);
+        var month_name = get_month_name((d.getMonth() + 12 - month_index) % 12);
+        membersHTML += month_name;
         //TODO adjust this when sorting is implemented
         if (month_index == 1)
-            membersHTML += font_small_to_big;
+            membersHTML += font_arrow_small_to_big;
         membersHTML += '</th>';
     }
 
@@ -439,6 +426,42 @@ function create_members_HTML(members) {
     return membersHTML;
 }
 
+
+function create_broken_members_HTML(members_broken_info) {
+
+    //character_id, member_since_date, rank, rank_ordinal
+
+    if (members_broken_info.length === 0) {
+        return "";
+    }
+
+    var membersHTML = "<h2>Members with broken API info</h2>";
+    membersHTML += '<p>These members with broken API info seem not to be listed in the in-game outfit list. </br>'
+    + 'On players.planetside2.com they are listed as unknown, with the comment: "This character has either been deleted from the game or has not yet been saved."</p>';
+    //start table
+    membersHTML += "<table class=\"alternate_color\">";
+    membersHTML += "<tr>"
+            + "<th>#</th>"
+            + "<th>Character id</th>"
+            + "</tr>";
+
+
+
+    var member_counter = 1;
+    for (member_index in members_broken_info) {
+        membersHTML += "<tr>"
+            + "<td>" + member_counter + "</td>"
+            + "<td>" + members_broken_info[member_index].character_id + "</td>"
+            + "</tr>";
+        member_counter += 1;
+    }
+
+    //end table
+    membersHTML += "</table>";
+
+    $("#broken_members").html(membersHTML);
+
+}
 
 function create_member_extra_HTML(member) {
    // console.log(member);
@@ -517,36 +540,6 @@ function dasanfall_href(name) {
 }
 
 //create table for broken members and outputs it to the webpage
-function create_broken_members_HTML(members_broken_info) {
-
-    //character_id, member_since_date, rank, rank_ordinal
-
-    var membersHTML = "<h2>Members with broken API info</h2>";
-    //start table
-    membersHTML += "<table class=\"alternate_color\">";
-    membersHTML += "<tr>"
-            + "<th>#</th>"
-            + "<th>Character id</th>"
-            + "</tr>";
-
-
-
-    var member_counter = 1;
-    for (member_index in members_broken_info) {
-        membersHTML += "<tr>"
-            + "<td>" + member_counter + "</td>"
-            + "<td>" + members_broken_info[member_index].character_id + "</td>"
-            + "</tr>";
-        member_counter += 1;
-    }
-
-    //end table
-    membersHTML += "</table>";
-
-    $("#broken_members").html(membersHTML);
-
-}
-
 //transform value in seconds to a formated string and return that
 function transform_s_to_hms(time_in_s) {
     var time_in_min = Math.floor(time_in_s / 60);
@@ -632,7 +625,7 @@ function update_get_stat_history_counter(stepsize, members) {
     member_playtimeinfo_done_counter += stepsize;
 }
 
-
+//doesnt work like this.. need to rethink
 function sort_members(members, field) {
     function compare_m(member1, member2) {
         if (parseInt(member1.field) < parseInt(member2.field))
