@@ -27,6 +27,7 @@
 //▾ - U+25BE SMALL BLACK DOWN-POINTING TRIANGLE
 //Use &#x25B2; and &#x25BC; if you cannot include Unicode characters directly (use UTF-8!).
 var font_arrow_small_to_big = ' &#x25b2 ';
+var font_arrow_big_to_small = ' &#x25BC ';
 
 //for testing purposes
 //frydac char id: "5428010618030935617"
@@ -68,6 +69,81 @@ function Outfit() {
         return result[0];
     };
 
+    //increment_decrement should be "increment" or "decrement"
+    //array_nr is optional, should be undefined if not used
+    Outfit.prototype.sort_members = function (increment_decrement, field, array_nr) {
+
+        var inverse = 0;
+        if (increment_decrement === 'increment') {
+            inverse = 1;
+        } else if (increment_decrement === 'decrement') {
+            inverse = -1;
+        }
+        //console.log("field in sort === " + field);
+        var comparator;
+        comparator = function (member1, member2) {
+            var member1_field;
+            var member2_field;
+            if (array_nr !== undefined) {
+                member1_field = member1[field][array_nr];
+                member2_field = member2[field][array_nr];
+            } else {
+                member1_field = member1[field];
+                member2_field = member2[field];
+            }
+
+            //make sure we are comparing numbers when we have to
+            if (field === 'battle_rank' ||
+                field === 'rank_ordinal' ||
+                field === 'minutes_played' ||
+                field === 'playtime_per_month') {
+                member1_field = parseInt(member1_field);
+                member2_field = parseInt(member2_field);
+//                console.log('so parsing ints to fields');
+            }
+
+            if (member1_field < member2_field)
+                return -1 * inverse;
+            if (member1_field > member2_field)
+                return 1 * inverse;
+            return 0;
+
+        }
+        this.members.sort(comparator);
+    }
+
+    //this gets some default values to start with
+    Outfit.prototype.members_sorted_by = function () {
+        this.field = "playtime_per_month";
+        this.array_nr = 1;
+        this.increment_decrement = "increment";
+    }
+
+    //this sort will depend on how the members where sorted, and will update that info
+    Outfit.prototype.sort_members_with_context = function (field, array_nr) {
+        //if it was sorted by the same field, inverse the order
+        if (this.members_sorted_by.field === field && this.members_sorted_by.array_nr === array_nr) {
+            if (this.members_sorted_by.increment_decrement === "increment")
+                this.members_sorted_by.increment_decrement = "decrement";
+            else if(this.members_sorted_by.increment_decrement === "decrement")
+                this.members_sorted_by.increment_decrement = "increment";
+        } else {
+            this.members_sorted_by.field = field;
+            this.members_sorted_by.array_nr = array_nr;
+            //only set this initially, else leave it as is
+            if (this.members_sorted_by.increment_decrement === undefined) {
+                this.members_sorted_by.increment_decrement = "increment";
+            }
+
+        }
+
+        this.sort_members(this.members_sorted_by.increment_decrement, this.members_sorted_by.field, this.members_sorted_by.array_nr)
+
+    }
+
+    //todo:
+    //function set_sort_by that toggles increment decrement
+
     //TODO: 
     //this.prototype.sort_members
 }
@@ -76,9 +152,9 @@ function Outfit() {
 //class/struct declaration for each outfit member
 function Outfit_member() {
     this.name = "";
-    this.character_id = "";
-    this.battle_rank = "";
-    this.rank_ordinal = "";
+    this.character_id = 0;
+    this.battle_rank = 0;
+    this.rank_ordinal = 0;
     this.rank = "";
     this.member_since_date = "";
     this.creation_date = "";
@@ -86,7 +162,7 @@ function Outfit_member() {
     this.last_save_date = "";
 
     //new ones
-    this.minutes_played = "";
+    this.minutes_played = 0;
 
     //the same numbering as SOE will be used:
     //playtime_per_month[0] will be this month, playtime_per_month[1] will be the previous month and so on
@@ -101,7 +177,7 @@ var member_playtimeinfo_done_counter = 0;
 
 //entry point: start doing things when document is ready
 $(document).ready(function () {
-     var outfit_name = "252nd Spec Ops";
+    var outfit_name = "252nd Spec Ops";
     //if you want to check other outfits edit this variable, for example uncomment following line
     //outfit_name = "INI Elite";
 
@@ -131,7 +207,7 @@ function initialize_document(outfit_name) {
         //now extract the members list from the same jqXHR_data put them in the outfit object
         //and make new ajax calls to get the stat history for each
         extract_member_list_information(jqXHR_data, outfit.members, outfit.members_broken_info);
-        console.log(outfit);
+//        console.log(outfit);
         //this will call a bunch of async functions and returns an array of jqXHR
         //it will also extract the members stat histories, because else we loop too much through the members (may change this later for readability)
         members_stat_history_REST_responses = get_api_info_members_stat_history(outfit.members);
@@ -140,17 +216,15 @@ function initialize_document(outfit_name) {
         //needed to jump out of this function and broken the flow of this function's abstraction.
         $.when.apply(this, members_stat_history_REST_responses).done(function () {
             //when we get here it means that all ajax requests in members_stat_history_REST_responses are done
-            //extract_members_stat_history(arguments);
-            //need to rewrite this sort
-            outfit.members.sort(function (m1, m2) {
-                return parseInt(m1.playtime_per_month[1]) - parseInt(m2.playtime_per_month[1]);
-            });
+            outfit.sort_members_with_context("battle_rank", undefined);
+            // console.log(outfit.members);
             var members_HTML = create_members_HTML(outfit.members);
             $("#members").html(members_HTML);
+            //bind functions
             $("table.members th").on("click", sort_members_test);
             $(".show_extra").on("click", show_member_extra_info);
-            create_broken_members_HTML(outfit.members_broken_info);
 
+            create_broken_members_HTML(outfit.members_broken_info);
         });
     });
 
@@ -160,27 +234,24 @@ function initialize_document(outfit_name) {
 
 //object to store the sorted state
 var sorted_state = function () {
-    
+
 }
 
 //need an object to record the sorted state
 function sort_members_test() {
-    //console.log("sort_members_test");
-    //var table_header_text = $(this).text();
-    //if (table_header_text === "Rank") {
-    //    outfit.members.sort(function (m1, m2) {
-    //        return parseInt(m1.rank_ordinal) - parseInt(m2.rank_ordinal);
-    //    });
-    //    var members_HTML = create_members_HTML(outfit.members);
-    //    $("#members").html(members_HTML);
+    var field = $(this).attr('field');
+    var array_nr = $(this).attr('array_nr');
+//    console.log('field: ' + field);
+//    console.log('array nr: ' + array_nr);
 
-    //    $("table.members th").on("click", sort_members_test);
-    //    $(".show_extra").on("click", show_member_extra_info);
+    outfit.sort_members_with_context(field, array_nr);
 
-
-    //}
-
-    //console.log("this.text: " + table_header_text);
+    //recreate html table with newly sorted members
+    var members_HTML = create_members_HTML(outfit.members);
+    $("#members").html(members_HTML);
+    //rebind functions to new html table elements
+    $("table.members th").on("click", sort_members_test);
+    $(".show_extra").on("click", show_member_extra_info);
 
 }
 
@@ -202,7 +273,7 @@ function get_api_info_outfit(outfit_name) {
 //extracts outfit information and returns an Outfit object
 function extract_outfit_information(ajaxResponse) {
     //should do type/defined checking or something..
-    console.log(ajaxResponse);
+    //console.log(ajaxResponse);
     var outfit = new Outfit();
     outfit.name = ajaxResponse.outfit_list[0].name;
     outfit.alias = ajaxResponse.outfit_list[0].alias;
@@ -224,13 +295,7 @@ function get_api_info_members_stat_history(members) {
         var response = get_api_info_n_members_stat_history(members, member_index, step_size);
         responses.push(response);
     }
-
-
-
-    console.log(members);
-
-
-
+    //console.log(members);
     return responses;
 }
 
@@ -295,16 +360,14 @@ function extract_member_list_information(ajaxResponse, members, members_broken_i
     //member info to extract:
     //character_id, name, battle_rank, rank_ordinal + rank, member_since_date, times.creation_date, times.last_login_date, times.last_save_date
 
-    //loop through all the members in the response and extract appropriate information
-    //for (member_index in ajaxResponse.outfit_list[0].members) {
-    //DEBUG:
-
+    //for debuggins purposes DEBUG:
     var max_members;
     if (max_members_debug <= 0)
         max_members = ajaxResponse.outfit_list[0].members.length;
     else
         max_members = max_members_debug;
 
+    //loop through all the members in the response and extract appropriate information
     for (member_index = 0; member_index < max_members; member_index++) {
 
         //use this var to make the dereferencing little less verbose
@@ -370,21 +433,19 @@ function create_members_HTML(members) {
     //  membersHTML += "<thead>";
     //create a table row (tr) with table headers (th)
     membersHTML += '  <tr>'
-        + '<th title="no sorting yet :)">#</th>'
-        + '<th title="no sorting yet :)">Name</th>'
-        + '<th title="no sorting yet :)">Rank</th>'
-        + '<th title="no sorting yet :)">BR</th>'
-        + '<th title="no sorting yet :)">Member since</th>'
-        + '<th title="no sorting yet :)">Total</th>';
+        + '<th>#</th>'
+        + '<th field="name">Name' + add_tableheader_arrow('name',undefined) + '</th>'
+        + '<th field="rank_ordinal">Rank' + add_tableheader_arrow('rank_ordinal', undefined) + '</th>'
+        + '<th field="battle_rank">BR' + add_tableheader_arrow('battle_rank', undefined) + '</th>'
+        + '<th field="member_since_date">Member since' + add_tableheader_arrow('member_since_date', undefined) + '</th>'
+        + '<th field="minutes_played">Total' + add_tableheader_arrow('minutes_played', undefined) + '</th>';
     //get the number of months from one member and make the tableheaders with appropriate month names
-    //console.log(members[0].playtime_per_month);
     for (month_index in members[0].playtime_per_month) {
-        membersHTML += '<th title="no sorting yet :)">';
+        membersHTML += '<th field="playtime_per_month" array_nr="' + month_index + '">';
         var month_name = get_month_name((d.getMonth() + 12 - month_index) % 12);
         membersHTML += month_name;
         //TODO adjust this when sorting is implemented
-        if (month_index == 1)
-            membersHTML += font_arrow_small_to_big;
+        membersHTML += add_tableheader_arrow('playtime_per_month', month_index);
         membersHTML += '</th>';
     }
 
@@ -464,8 +525,8 @@ function create_broken_members_HTML(members_broken_info) {
 }
 
 function create_member_extra_HTML(member) {
-   // console.log(member);
-   // console.log(member.name);
+    // console.log(member);
+    // console.log(member.name);
     var date = new Date();
     var member_HTML = "";
 
@@ -574,7 +635,7 @@ function transform_s_to_hm(time_in_s) {
     var time_formated = "";
     time_formated += time_in_hours + "h "
                     + remainder_in_min + "m ";
-                    //+ remainder_in_s + "s";
+    //+ remainder_in_s + "s";
     return time_formated;
 }
 
@@ -625,19 +686,20 @@ function update_get_stat_history_counter(stepsize, members) {
     member_playtimeinfo_done_counter += stepsize;
 }
 
-//doesnt work like this.. need to rethink
-function sort_members(members, field) {
-    function compare_m(member1, member2) {
-        if (parseInt(member1.field) < parseInt(member2.field))
-            return -1;
-        if (parseInt(member1.field) > parseInt(member2.field))
-            return 1;
-        return 0;
-    }
-    members.sort(compare_month01);
-}
 
 function strip_hour_from_SOE_date(SOE_date) {
     return SOE_date.slice(0, -11);
 
+}
+
+function add_tableheader_arrow(field, array_nr) {
+    if (field === outfit.members_sorted_by.field &&
+        array_nr === outfit.members_sorted_by.array_nr) {
+        if (outfit.members_sorted_by.increment_decrement === 'increment')
+            return font_arrow_small_to_big;
+        else if (outfit.members_sorted_by.increment_decrement === 'decrement')
+            return font_arrow_big_to_small;
+    } else {
+        return '';
+    }
 }

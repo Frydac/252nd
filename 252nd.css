@@ -47,6 +47,10 @@ th {
     padding:3px 5px;
 }
 
+    th:hover {
+        cursor:pointer;
+    }
+
 
 button{
     font-family: monospace;
