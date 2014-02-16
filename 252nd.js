@@ -11,7 +11,7 @@
 //-- make input for minimum played time/month
 //-- make input for nr of months
 //-- make search while you type for outfit name
-//--
+//-- implement stable sort: http://www.sitepoint.com/sophisticated-sorting-in-javascript/
 
 //----- usefull links:
 //soe rest api information (incomplete and faulty information there :s )
@@ -114,15 +114,15 @@ function Outfit() {
 
     //this gets some default values to start with
     Outfit.prototype.members_sorted_by = function () {
-        this.field = "playtime_per_month";
-        this.array_nr = 1;
-        this.increment_decrement = "increment";
+        this.field;
+        this.array_nr;
+        this.increment_decrement;
     }
 
     //this sort will depend on how the members where sorted, and will update that info
     Outfit.prototype.sort_members_with_context = function (field, array_nr) {
         //if it was sorted by the same field, inverse the order
-        if (this.members_sorted_by.field === field && this.members_sorted_by.array_nr === array_nr) {
+        if (this.members_sorted_by.field === field && this.members_sorted_by.array_nr == array_nr) {
             if (this.members_sorted_by.increment_decrement === "increment")
                 this.members_sorted_by.increment_decrement = "decrement";
             else if(this.members_sorted_by.increment_decrement === "decrement")
@@ -130,15 +130,14 @@ function Outfit() {
         } else {
             this.members_sorted_by.field = field;
             this.members_sorted_by.array_nr = array_nr;
-            //only set this initially, else leave it as is
-            if (this.members_sorted_by.increment_decrement === undefined) {
-                this.members_sorted_by.increment_decrement = "increment";
-            }
+        }
 
+        //only set this initially, else leave it as is
+        if (this.members_sorted_by.increment_decrement === undefined) {
+            this.members_sorted_by.increment_decrement = "increment";
         }
 
         this.sort_members(this.members_sorted_by.increment_decrement, this.members_sorted_by.field, this.members_sorted_by.array_nr)
-
     }
 
     //todo:
@@ -216,7 +215,7 @@ function initialize_document(outfit_name) {
         //needed to jump out of this function and broken the flow of this function's abstraction.
         $.when.apply(this, members_stat_history_REST_responses).done(function () {
             //when we get here it means that all ajax requests in members_stat_history_REST_responses are done
-            outfit.sort_members_with_context("battle_rank", undefined);
+            outfit.sort_members_with_context("playtime_per_month", 1);
             // console.log(outfit.members);
             var members_HTML = create_members_HTML(outfit.members);
             $("#members").html(members_HTML);
@@ -694,7 +693,7 @@ function strip_hour_from_SOE_date(SOE_date) {
 
 function add_tableheader_arrow(field, array_nr) {
     if (field === outfit.members_sorted_by.field &&
-        array_nr === outfit.members_sorted_by.array_nr) {
+        array_nr == outfit.members_sorted_by.array_nr) {
         if (outfit.members_sorted_by.increment_decrement === 'increment')
             return font_arrow_small_to_big;
         else if (outfit.members_sorted_by.increment_decrement === 'decrement')
