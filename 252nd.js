@@ -4,10 +4,7 @@
 //-----JSLINT
 /*jslint browser: true*/
 /*global $, jQuery, console*/
-/*jslint browser: true, devel: true, node: true,
-rhino: true, passfail: true,  bitwise: true, continue: true,
-debug: true, eqeq: true, evil: true, forin: true, newcap: true, nomen: true, plusplus: true,
-regexp: true, unparam: true, sloppy: true, stupid: true, sub: true, todo: true, vars: true, white: true */
+
 
 //----- TODO:
 //-- organize code better, use .then .when functions to deal with async ajax:
@@ -48,6 +45,11 @@ var n_members_per_request = 20;
 
 //global variable of type Outfit, will be initialized later
 var outfit = null;
+
+//temp global
+var OUTFIT_NAME = "252nd Spec Ops";
+//if you want to check other outfits edit this variable, for example uncomment following line
+//outfit_name = "INI Elite";
 
 //class/struct declaration for outfit information
 function Outfit() {
@@ -171,14 +173,13 @@ function Outfit_member() {
 var member_playtimeinfo_done_counter = 0;
 
 //entry point: start doing things when document is ready
-$(document).ready(function () {
-    var outfit_name = "252nd Spec Ops";
-    //if you want to check other outfits edit this variable, for example uncomment following line
-    //outfit_name = "INI Elite";
+//$(document).ready(function () {
+    
 
-    //this needs a better name :D
-    initialize_document(outfit_name);
-});
+
+//    //this needs a better name :D
+//    initialize_document(OUTFIT_NAME);
+//});
 
 
 function initialize_document(outfit_name) {
@@ -525,15 +526,49 @@ function create_member_extra_HTML(member) {
     member_HTML += '<tr><td>Creation Date</td><td>' + member.creation_date + '</td></tr>';
     member_HTML += '<tr><td>Last Save Date</td><td>' + member.last_save_date + '</td></tr>';
     member_HTML += '<tr><td>Last Login Date</td><td>' + member.last_login_date + '</td></tr>';
+
     //member_HTML += '<tr><td>Total Play Time</td><td>' + transform_m_to_hm(member.minutes_played) + '</td></tr>';
     //member_HTML += '<tr><td></td><td></td></tr>';
     member_HTML += '</table>';
 
     //add some space, should probably use css for this
     member_HTML += '<p></p>';
+
+    var start_date = create_date_object(member.creation_date);
+    var end_date = new Date(); //now
+    var average_playtime = average_playtime_per_day(start_date, end_date, member.minutes_played);
+    average_playtime = transform_s_to_hms(average_playtime * 60);
+    member_HTML += '<table>';
+    member_HTML += '<tr><td>Average Daily Playtime Since Creation Date</td><td>' + average_playtime + '</td></tr>';
+    member_HTML += '</table>';
+    member_HTML += '<p></p>';
+
+
     //close surrounding tabledata field
     member_HTML += '</td></tr>';
     return member_HTML;
+}
+
+function average_playtime_per_day(start_date, end_date, time_played) {
+    var elapsed_time_in_ms = end_date - start_date;
+    var elapsed_time_in_days = elapsed_time_in_ms / 1000 / 60 / 60 / 24;
+    // + 1 because we count the current day
+    var total_days = elapsed_time_in_days + 1;
+    return time_played/total_days;
+}
+
+function create_date_object(ingame_date) {
+    //javascript date contructor
+    //new Date(year, month [, day, hour, minute, second, millisecond]);
+    //var in_game_date_example = "2012-11-20 18:44:32.0";
+    date = new Date();
+    date.setFullYear(ingame_date.substring(4, 0));
+    date.setMonth(ingame_date.substring(5, 7) - 1);
+    date.setDate(ingame_date.substring(8, 10));
+    date.setHours(ingame_date.substring(11, 13));
+    date.setMinutes(ingame_date.substring(14, 16));
+    date.setSeconds(ingame_date.substring(17, 19));
+    return date;
 }
 
 function show_member_extra_info() {
@@ -546,7 +581,7 @@ function show_member_extra_info() {
 
     $(this).html("-");
     $(this).unbind();
-    $(this).bind("click", hide_member_extra_info);
+    $(this).on("click", hide_member_extra_info);
 }
 
 function hide_member_extra_info() {
@@ -555,7 +590,7 @@ function hide_member_extra_info() {
     $(id_name).remove();
     $(this).html("+");
     $(this).unbind();
-    $(this).bind("click", show_member_extra_info);
+    $(this).on("click", show_member_extra_info);
 }
 
 function dasanfall_href(name) {
@@ -584,7 +619,7 @@ function transform_s_to_hms(time_in_s) {
     var time_formated = "";
     time_formated += time_in_hours + "h "
                     + remainder_in_min + "m "
-                    + remainder_in_s + "s";
+                    + Math.round(remainder_in_s*100)/100 + "s";
     return time_formated;
 }
 

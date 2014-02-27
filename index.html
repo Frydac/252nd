@@ -6,7 +6,7 @@
     <title>252nd Member's Playtimes</title>
 
     <!-- load stylesheet -->
-    <link rel="stylesheet" type="text/css" href="252nd.css">
+    <link rel="stylesheet" type="text/css" href="252nd.css" />
 
     <!-- google analytics.. -->
     <script>
@@ -22,14 +22,20 @@
 
     </script>
 
-    <!--load jquery-->
+    <!--load jquery to make life a bit easier-->
     <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 
     <!-- load javascript file where the magic happens -->
     <script src="252nd.js"></script>
 
+    <!-- start the magic -->
+    <script type="text/javascript">
+        $(document).ready(function () {
+            //this needs a better name :D
+            initialize_document(OUTFIT_NAME);
+        });
 
-
+    </script>
 </head>
 <body>
     <!-- Placeholder for outfit information -->

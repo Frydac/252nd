@@ -4,3 +4,8 @@
 *.suo
 Tabletest.html
 /NetbeansProject/nbproject/private/
+/NetbeansProject/
+.project
+test.js
+Tabletest.html
+.settings
