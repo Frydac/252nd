@@ -550,8 +550,8 @@ function create_member_extra_HTML(member) {
 }
 
 function average_playtime_per_day(start_date, end_date, time_played) {
-    //var elapsed_time_in_ms = Math.abs(end_date - start_date);
-    var elapsed_time_in_ms = end_date - start_date;
+    var elapsed_time_in_ms = Math.abs(end_date - start_date);
+    //var elapsed_time_in_ms = end_date - start_date;
     var elapsed_time_in_days = elapsed_time_in_ms / 1000 / 60 / 60 / 24;
     // when 0 it could be the same day, so take one day.
     elapsed_time_in_days = elapsed_time_in_days === 0 ? 1 : elapsed_time_in_days;
@@ -560,7 +560,6 @@ function average_playtime_per_day(start_date, end_date, time_played) {
 
 function create_date_object(ingame_date) {
     //javascript date contructor
-    //new Date(year, month [, day, hour, minute, second, millisecond]);
     //var in_game_date_example = "2012-11-20 18:44:32.0";
     date = new Date();
     date.setFullYear(ingame_date.substring(4, 0));
@@ -615,12 +614,13 @@ function transform_s_to_hms(time_in_s) {
     //do some extra formatting
     if (remainder_in_min < 10)
         remainder_in_min = "0" + remainder_in_min;
+    remainder_in_s = Math.round(remainder_in_s * 100) / 100
     if (remainder_in_s < 10)
         remainder_in_s = "0" + remainder_in_s;
     var time_formated = "";
     time_formated += time_in_hours + "h "
                     + remainder_in_min + "m "
-                    + Math.round(remainder_in_s*100)/100 + "s";
+                    + remainder_in_s + "s";
     return time_formated;
 }
 
