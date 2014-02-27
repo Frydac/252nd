@@ -550,11 +550,12 @@ function create_member_extra_HTML(member) {
 }
 
 function average_playtime_per_day(start_date, end_date, time_played) {
+    //var elapsed_time_in_ms = Math.abs(end_date - start_date);
     var elapsed_time_in_ms = end_date - start_date;
     var elapsed_time_in_days = elapsed_time_in_ms / 1000 / 60 / 60 / 24;
-    // + 1 because we count the current day
-    var total_days = elapsed_time_in_days + 1;
-    return time_played/total_days;
+    // when 0 it could be the same day, so take one day.
+    elapsed_time_in_days = elapsed_time_in_days === 0 ? 1 : elapsed_time_in_days;
+    return time_played / elapsed_time_in_days;
 }
 
 function create_date_object(ingame_date) {

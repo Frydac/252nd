@@ -33,17 +33,17 @@ test("average playtime", function () {
     
     equal(average_play_time, 10, "playtime of 1 day");
 
-    var end_date = new Date(2014, 7, 2);
+    var end_date = new Date(2014, 7, 3);
     average_play_time = average_playtime_per_day(start_date, end_date, playtime);
     equal(average_play_time, 5, "playtime of 2 days");
 
     var end_date = new Date(2014, 8, 1);
-    playtime = (31 + 1) * 5;
+    playtime = (31) * 5;
     average_play_time = average_playtime_per_day(start_date, end_date, playtime);
     equal(average_play_time, 5, "playtime of 30 days");
 
     var end_date = new Date(2015, 7, 1);
-    playtime = (365 + 1) * 5;
+    playtime = (365) * 5;
     average_play_time = average_playtime_per_day(start_date, end_date, playtime);
     equal(average_play_time, 5, "playtime of 365 days");
 
