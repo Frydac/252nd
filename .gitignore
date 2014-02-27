@@ -3,3 +3,4 @@
 # Ignore Visual Studio User-specific files
 *.suo
 Tabletest.html
+/NetbeansProject/nbproject/private/

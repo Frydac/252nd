@@ -1,7 +1,13 @@
 ﻿//This is my first Javascript project ever, so I'm learning on the go
 //I put a lot of comments everywhere, mainly so hopefully I can understand it later myself
 
-
+//-----JSLINT
+/*jslint browser: true*/
+/*global $, jQuery, console*/
+/*jslint browser: true, devel: true, node: true,
+rhino: true, passfail: true,  bitwise: true, continue: true,
+debug: true, eqeq: true, evil: true, forin: true, newcap: true, nomen: true, plusplus: true,
+regexp: true, unparam: true, sloppy: true, stupid: true, sub: true, todo: true, vars: true, white: true */
 
 //----- TODO:
 //-- organize code better, use .then .when functions to deal with async ajax:
@@ -12,6 +18,11 @@
 //-- make input for nr of months
 //-- make search while you type for outfit name
 //-- implement stable sort: http://www.sitepoint.com/sophisticated-sorting-in-javascript/
+//   this is probably easiest: https://github.com/justinforce/merge-sort
+
+//----- ideas
+//-- its possible to get which items a player has by using:
+//  http://census.soe.com/get/ps2:v2/character/?name.first_lower=dryver&c:resolve=item_full
 
 //----- usefull links:
 //soe rest api information (incomplete and faulty information there :s )
@@ -21,13 +32,8 @@
 //http://www.planetside-universe.com/api/census.php
 
 //----- Font info
-//▲ - U+25B2 BLACK UP-POINTING TRIANGLE
-//▼ - U+25BC BLACK DOWN-POINTING TRIANGLE
-//▴ - U+25B4 SMALL BLACK UP-POINTING TRIANGLE
-//▾ - U+25BE SMALL BLACK DOWN-POINTING TRIANGLE
-//Use &#x25B2; and &#x25BC; if you cannot include Unicode characters directly (use UTF-8!).
-var font_arrow_small_to_big = ' &#x25b2 ';
-var font_arrow_big_to_small = ' &#x25BC ';
+var FONT_ARROW_SMALL_TO_BIG = ' &#x25b2 ';
+var FONT_ARROW_BIG_TO_SMALL = ' &#x25BC ';
 
 //for testing purposes
 //frydac char id: "5428010618030935617"
@@ -35,7 +41,7 @@ var font_arrow_big_to_small = ' &#x25BC ';
 //debug variable, set higher than 0 when needed
 //this will cause the app to only query max_members_debug amount of members
 //and not every member of the outfit.
-var max_members_debug = -1;
+var MAX_MEMBERS_debug = -1;
 
 //how many members in one REST request
 var n_members_per_request = 20;
@@ -70,7 +76,7 @@ function Outfit() {
     };
 
     //increment_decrement should be "increment" or "decrement"
-    //array_nr is optional, should be undefined if not used
+    //array_nr should be undefined if not used
     Outfit.prototype.sort_members = function (increment_decrement, field, array_nr) {
 
         var inverse = 0;
@@ -79,9 +85,7 @@ function Outfit() {
         } else if (increment_decrement === 'decrement') {
             inverse = -1;
         }
-        //console.log("field in sort === " + field);
-        var comparator;
-        comparator = function (member1, member2) {
+        var comparator = function (member1, member2) {
             var member1_field;
             var member2_field;
             if (array_nr !== undefined) {
@@ -97,27 +101,24 @@ function Outfit() {
                 field === 'rank_ordinal' ||
                 field === 'minutes_played' ||
                 field === 'playtime_per_month') {
-                member1_field = parseInt(member1_field);
-                member2_field = parseInt(member2_field);
-//                console.log('so parsing ints to fields');
+                member1_field = parseInt(member1_field, 10);
+                member2_field = parseInt(member2_field, 10);
             }
-
             if (member1_field < member2_field)
-                return -1 * inverse;
+                return (-1 * inverse);
             if (member1_field > member2_field)
-                return 1 * inverse;
+                return (1 * inverse);
             return 0;
-
-        }
+        };
         this.members.sort(comparator);
-    }
+    };
 
     //this gets some default values to start with
     Outfit.prototype.members_sorted_by = function () {
-        this.field;
-        this.array_nr;
-        this.increment_decrement;
-    }
+        this.field = '';
+        this.array_nr = 0;
+        this.increment_decrement = '';
+    };
 
     //this sort will depend on how the members where sorted, and will update that info
     Outfit.prototype.sort_members_with_context = function (field, array_nr) {
@@ -125,7 +126,7 @@ function Outfit() {
         if (this.members_sorted_by.field === field && this.members_sorted_by.array_nr == array_nr) {
             if (this.members_sorted_by.increment_decrement === "increment")
                 this.members_sorted_by.increment_decrement = "decrement";
-            else if(this.members_sorted_by.increment_decrement === "decrement")
+            else if (this.members_sorted_by.increment_decrement === "decrement")
                 this.members_sorted_by.increment_decrement = "increment";
         } else {
             this.members_sorted_by.field = field;
@@ -137,14 +138,8 @@ function Outfit() {
             this.members_sorted_by.increment_decrement = "increment";
         }
 
-        this.sort_members(this.members_sorted_by.increment_decrement, this.members_sorted_by.field, this.members_sorted_by.array_nr)
-    }
-
-    //todo:
-    //function set_sort_by that toggles increment decrement
-
-    //TODO: 
-    //this.prototype.sort_members
+        this.sort_members(this.members_sorted_by.increment_decrement, this.members_sorted_by.field, this.members_sorted_by.array_nr);
+    };
 }
 
 
@@ -167,11 +162,12 @@ function Outfit_member() {
     //playtime_per_month[0] will be this month, playtime_per_month[1] will be the previous month and so on
     this.playtime_per_month = [];
 
-    //playtime_per_day[0] is today, playtime_per_day[1] yesterday and so on
+    //playtime_per_day[0] is yesterday, playtime_per_day[1] the day before yesterday and so on
     this.playtime_per_day = [];
 }
 
-//because the ajax call is asynchronous we have to wait until all queries are done, I do it by adding to this counter when a member is updated, we know how many members there are.
+//because the ajax call is asynchronous we have to wait until all queries are done, 
+//I do it by adding to this counter when a member is updated, we know how many members there are.
 var member_playtimeinfo_done_counter = 0;
 
 //entry point: start doing things when document is ready
@@ -182,7 +178,6 @@ $(document).ready(function () {
 
     //this needs a better name :D
     initialize_document(outfit_name);
-
 });
 
 
@@ -206,7 +201,7 @@ function initialize_document(outfit_name) {
         //now extract the members list from the same jqXHR_data put them in the outfit object
         //and make new ajax calls to get the stat history for each
         extract_member_list_information(jqXHR_data, outfit.members, outfit.members_broken_info);
-//        console.log(outfit);
+        //        console.log(outfit);
         //this will call a bunch of async functions and returns an array of jqXHR
         //it will also extract the members stat histories, because else we loop too much through the members (may change this later for readability)
         members_stat_history_REST_responses = get_api_info_members_stat_history(outfit.members);
@@ -216,42 +211,23 @@ function initialize_document(outfit_name) {
         $.when.apply(this, members_stat_history_REST_responses).done(function () {
             //when we get here it means that all ajax requests in members_stat_history_REST_responses are done
             outfit.sort_members_with_context("playtime_per_month", 1);
-            // console.log(outfit.members);
-            var members_HTML = create_members_HTML(outfit.members);
-            $("#members").html(members_HTML);
-            //bind functions
-            $("table.members th").on("click", sort_members_test);
-            $(".show_extra").on("click", show_member_extra_info);
-
+            add_members_to_page(outfit.members);
             create_broken_members_HTML(outfit.members_broken_info);
         });
     });
-
-
 }
 
-
-//object to store the sorted state
-var sorted_state = function () {
-
-}
-
-//need an object to record the sorted state
-function sort_members_test() {
+//need an object to record the sorted state, or use stable sort algorithm
+//this function sorts by using the embedded attributes in the table header
+//it is supposed to be called from a click on a particular tableheader tabledata tag.
+function sort_members_by_table_header() {
     var field = $(this).attr('field');
     var array_nr = $(this).attr('array_nr');
-//    console.log('field: ' + field);
-//    console.log('array nr: ' + array_nr);
 
     outfit.sort_members_with_context(field, array_nr);
 
     //recreate html table with newly sorted members
-    var members_HTML = create_members_HTML(outfit.members);
-    $("#members").html(members_HTML);
-    //rebind functions to new html table elements
-    $("table.members th").on("click", sort_members_test);
-    $(".show_extra").on("click", show_member_extra_info);
-
+    add_members_to_page(outfit.members);
 }
 
 // makes the outfit ajax call and returns the jQuery XML HTTP Request object
@@ -265,10 +241,9 @@ function get_api_info_outfit(outfit_name) {
         url: outfitinfo_memberlist_REST_URL,
         dataType: "jsonp"
     });
-
     return outfitinfo_memberlist_REST_response;
-
 }
+
 //extracts outfit information and returns an Outfit object
 function extract_outfit_information(ajaxResponse) {
     //should do type/defined checking or something..
@@ -290,11 +265,11 @@ function get_api_info_members_stat_history(members) {
     //initialize counter on the webpage
     update_get_stat_history_counter(step_size, members);
 
-    for (member_index = 0; member_index < members.length; member_index += step_size) {
+    for (var member_index = 0; member_index < members.length; member_index += step_size) {
         var response = get_api_info_n_members_stat_history(members, member_index, step_size);
         responses.push(response);
     }
-    //console.log(members);
+    console.log(members);
     return responses;
 }
 
@@ -314,44 +289,41 @@ function get_api_info_n_members_stat_history(members, index, n) {
         url: stat_history_for_char_REST_URL,
         dataType: "jsonp",
         success: function (response, text_status, jqXHR) {
-            //console.log(response);
+            console.log(response);
 
             //we asked for n chars, so loop through the response character list
-            for (char_list_index in response.character_list) {
+            for (var char_list_index in response.character_list) {
                 var current_members_index = index + parseInt(char_list_index);
                 var current_member = members[current_members_index];
                 if (current_member.character_id !== response.character_list[char_list_index].character_id) {
-                    console.log("characters returned arent in the same order as in the query! (or my code is bugged ;) )")
+                    console.log("characters returned arent in the same order as in the query! (or my code is bugged ;) )");
                 }
                 var member_stat_history = response.character_list[char_list_index].stats.stat_history;
                 //get the right stat history array index
-                for (mem_stat_index in member_stat_history) {
+                for (var mem_stat_index in member_stat_history) {
                     if (member_stat_history[mem_stat_index].stat_name === "time") {
                         //add all the months, its a list of fields/properties, not an array
-                        for (month_field in member_stat_history[mem_stat_index].month) {
+                        for (var month_field in member_stat_history[mem_stat_index].month) {
                             if (member_stat_history[mem_stat_index].month.hasOwnProperty(month_field)) {
                                 current_member.playtime_per_month.push(member_stat_history[mem_stat_index].month[month_field]);
                             }
                         }
                         //add all the days
-                        for (day_field in member_stat_history[mem_stat_index].day) {
+                        for (var day_field in member_stat_history[mem_stat_index].day) {
                             if (member_stat_history[mem_stat_index].day.hasOwnProperty(day_field)) {
                                 current_member.playtime_per_day.push(member_stat_history[mem_stat_index].day[day_field]);
                             }
                         }
                     }
                 }
-
             }
 
             //update counter in webpage to inform user
-            update_get_stat_history_counter(n, members)
+            update_get_stat_history_counter(n, members);
         }
     });
 
     return response;
-
-
 }
 
 //extracts member information and puts in the array members if they are ok, and in the array members_broken_info if they ar not ok
@@ -361,17 +333,15 @@ function extract_member_list_information(ajaxResponse, members, members_broken_i
 
     //for debuggins purposes DEBUG:
     var max_members;
-    if (max_members_debug <= 0)
+    if (MAX_MEMBERS_debug <= 0)
         max_members = ajaxResponse.outfit_list[0].members.length;
     else
-        max_members = max_members_debug;
+        max_members = MAX_MEMBERS_debug;
 
     //loop through all the members in the response and extract appropriate information
-    for (member_index = 0; member_index < max_members; member_index++) {
-
+    for (var member_index = 0; member_index < max_members; member_index++) {
         //use this var to make the dereferencing little less verbose
         var response_member = ajaxResponse.outfit_list[0].members[member_index];
-
         var member = new Outfit_member();
 
         //for some reason the member information in the ajax response is not always defined!!
@@ -418,13 +388,19 @@ function create_outfit_HTML(outfit) {
     return outfit_HTML;
 }
 
+function add_members_to_page(members) {
+    var members_HTML = create_members_HTML(members);
+    $("#members").html(members_HTML);
+    //rebind functions to new html table elements
+    $("table.members th").on("click", sort_members_by_table_header);
+    $(".show_extra").on("click", show_member_extra_info);
+}
+
 //creates a table with the members info and outputs it to the webpage
 function create_members_HTML(members) {
 
-    //sort_members();
-
-    //current date to produce month names
-    var d = new Date();
+    var current_month = (new Date()).getMonth();
+    var minimum_playtime_per_month_in_s = 72000;
 
     var membersHTML = '<h2>Members</h2>';
     //start table with class alternate_color
@@ -433,17 +409,16 @@ function create_members_HTML(members) {
     //create a table row (tr) with table headers (th)
     membersHTML += '  <tr>'
         + '<th>#</th>'
-        + '<th field="name">Name' + add_tableheader_arrow('name',undefined) + '</th>'
+        + '<th field="name">Name' + add_tableheader_arrow('name', undefined) + '</th>'
         + '<th field="rank_ordinal">Rank' + add_tableheader_arrow('rank_ordinal', undefined) + '</th>'
         + '<th field="battle_rank">BR' + add_tableheader_arrow('battle_rank', undefined) + '</th>'
         + '<th field="member_since_date">Member since' + add_tableheader_arrow('member_since_date', undefined) + '</th>'
         + '<th field="minutes_played">Total' + add_tableheader_arrow('minutes_played', undefined) + '</th>';
     //get the number of months from one member and make the tableheaders with appropriate month names
-    for (month_index in members[0].playtime_per_month) {
+    for (var month_index in members[0].playtime_per_month) {
         membersHTML += '<th field="playtime_per_month" array_nr="' + month_index + '">';
-        var month_name = get_month_name((d.getMonth() + 12 - month_index) % 12);
+        var month_name = get_month_name((current_month + 12 - month_index) % 12);
         membersHTML += month_name;
-        //TODO adjust this when sorting is implemented
         membersHTML += add_tableheader_arrow('playtime_per_month', month_index);
         membersHTML += '</th>';
     }
@@ -454,7 +429,7 @@ function create_members_HTML(members) {
     //loop through members with good info and create html table rows (tr) and table data (td)
     var member;
     var member_counter = 1;
-    for (member_index in members) {
+    for (var member_index in members) {
         member = members[member_index];
         var even_row = (member_counter % 2 === 0) ? 'class="even_row"' : "";
         membersHTML += "<tr " + even_row + " >"
@@ -466,12 +441,12 @@ function create_members_HTML(members) {
             + "<td>" + member.rank + "</td>"
             + "<td>" + member.battle_rank + "</td>"
             + "<td>" + strip_hour_from_SOE_date(member.member_since_date) + "</td>"
-            + "<td>" + transform_m_to_hm(member.minutes_played) + "</td>"
+            + "<td>" + transform_m_to_hm(member.minutes_played) + "</td>";
         // + "<td>" + member.last_save_date + "</td>"
         //add each month, could later make this variable
         for (month_index in member.playtime_per_month) {
             var playtime = member.playtime_per_month[month_index];
-            membersHTML += "<td " + create_class(playtime) + ">"
+            membersHTML += "<td " + create_month_tabledata_html_class(playtime, minimum_playtime_per_month_in_s) + ">"
                         + transform_s_to_hms(playtime)
                         + "</td>";
         }
@@ -488,7 +463,6 @@ function create_members_HTML(members) {
 
 
 function create_broken_members_HTML(members_broken_info) {
-
     //character_id, member_since_date, rank, rank_ordinal
 
     if (members_broken_info.length === 0) {
@@ -505,10 +479,8 @@ function create_broken_members_HTML(members_broken_info) {
             + "<th>Character id</th>"
             + "</tr>";
 
-
-
     var member_counter = 1;
-    for (member_index in members_broken_info) {
+    for (var member_index in members_broken_info) {
         membersHTML += "<tr>"
             + "<td>" + member_counter + "</td>"
             + "<td>" + members_broken_info[member_index].character_id + "</td>"
@@ -520,7 +492,6 @@ function create_broken_members_HTML(members_broken_info) {
     membersHTML += "</table>";
 
     $("#broken_members").html(membersHTML);
-
 }
 
 function create_member_extra_HTML(member) {
@@ -534,7 +505,9 @@ function create_member_extra_HTML(member) {
     member_HTML += "<h4>" + member.name + "</h4>";
     member_HTML += "<p> Play times of the last 31 days (eg. as far as the soe api provides)</p>";
     member_HTML += '<table class="extra_info"><tr>';
-    for (day_index in member.playtime_per_day) {
+    for (var day_index in member.playtime_per_day) {
+        //we start on yesterday
+        date.setDate(date.getDate() - 1);
         var playtime = member.playtime_per_day[day_index];
         member_HTML += '<pre><td class="right_align">'
                     //+ 'day ' + day_index + "\n "
@@ -544,13 +517,8 @@ function create_member_extra_HTML(member) {
         if ((parseInt(day_index) + 1) % 16 === 0) {
             member_HTML += '</tr><tr>';
         }
-        date.setDate(date.getDate() - 1);
     }
     member_HTML += '</tr></table>';
-    //<ul>
-    //<li>Coffee</li>
-    //<li>Milk</li>
-    //</ul>
     // member_HTML += '<p>Some more stats, the api returned them, so why not ;)</p>';
     member_HTML += '<p></p>';
     member_HTML += '<table>';
@@ -569,11 +537,13 @@ function create_member_extra_HTML(member) {
 }
 
 function show_member_extra_info() {
-    var par = $(this).parent().parent();  //tr containing the button
-    var member_name = par.children().eq(1).children().eq(1).text();
+    var member_name = $(this).attr('name');
     var member = outfit.find_member(member_name);
     var member_extra_HTML = create_member_extra_HTML(member);
-    par.after(member_extra_HTML);
+
+    var table_row = $(this).parent().parent();  //tr containing the button
+    table_row.after(member_extra_HTML);
+
     $(this).html("-");
     $(this).unbind();
     $(this).bind("click", hide_member_extra_info);
@@ -590,13 +560,12 @@ function hide_member_extra_info() {
 
 function dasanfall_href(name) {
     //<a href="http://stats.dasanfall.com/ps2/player/Frydac">Frydac</a>
-    var html_href = "<a href=\"http://stats.dasanfall.com/ps2/player/"
+    var html_href = '<a href="http://stats.dasanfall.com/ps2/player/'
             + name
-            + "\"  target=\"_blank\">"
+            + '"  target="_blank">'
             + name
             + "</a>";
     return html_href;
-
 }
 
 //create table for broken members and outputs it to the webpage
@@ -617,25 +586,6 @@ function transform_s_to_hms(time_in_s) {
                     + remainder_in_min + "m "
                     + remainder_in_s + "s";
     return time_formated;
-
-}
-
-function transform_s_to_hm(time_in_s) {
-    var time_in_min = Math.floor(time_in_s / 60);
-    var remainder_in_s = time_in_s % 60;
-    var time_in_hours = Math.floor(time_in_min / 60);
-    var remainder_in_min = time_in_min % 60;
-
-    //do some extra formatting
-    if (remainder_in_min < 10)
-        remainder_in_min = "0" + remainder_in_min;
-    //if (remainder_in_s < 10)
-    //    remainder_in_s = "0" + remainder_in_s;
-    var time_formated = "";
-    time_formated += time_in_hours + "h "
-                    + remainder_in_min + "m ";
-    //+ remainder_in_s + "s";
-    return time_formated;
 }
 
 function transform_m_to_hm(time_in_m) {
@@ -646,11 +596,9 @@ function transform_m_to_hm(time_in_m) {
     var time_formated = time_in_hours + "h "
                    + remainder_in_min + "m ";
     return time_formated;
-
 }
 
 function get_month_name(month_number) {
-
     var month = new Array();
     month[0] = "January";
     month[1] = "February";
@@ -667,9 +615,8 @@ function get_month_name(month_number) {
     return month[month_number];
 }
 
-function create_class(month_play_time) {
+function create_month_tabledata_html_class(month_play_time, min_time_per_month_in_s) {
     var month_class = "class=\"right_align";
-    var min_time_per_month_in_s = 72000;
     if (parseInt(month_play_time) < min_time_per_month_in_s)
         month_class += " red";
     month_class += "\"";
@@ -679,25 +626,24 @@ function create_class(month_play_time) {
 
 //update counter, put on webpage: inform user about the progress
 function update_get_stat_history_counter(stepsize, members) {
-    var possible_upper_bound = parseInt(member_playtimeinfo_done_counter) + parseInt(stepsize);
-    var upper_bound = possible_upper_bound < members.length ? possible_upper_bound : members.length;
-    $("#members").html("</br></br> Waiting for respons for members [" + member_playtimeinfo_done_counter + " - " + upper_bound + "]")
+    var next_upper_bound = parseInt(member_playtimeinfo_done_counter) + parseInt(stepsize);
+    var upper_bound = next_upper_bound < members.length ? next_upper_bound : members.length;
+    $("#members").html("</br></br> Waiting for respons for members [" + member_playtimeinfo_done_counter + " - " + upper_bound + "]");
     member_playtimeinfo_done_counter += stepsize;
 }
 
 
 function strip_hour_from_SOE_date(SOE_date) {
     return SOE_date.slice(0, -11);
-
 }
 
 function add_tableheader_arrow(field, array_nr) {
     if (field === outfit.members_sorted_by.field &&
         array_nr == outfit.members_sorted_by.array_nr) {
         if (outfit.members_sorted_by.increment_decrement === 'increment')
-            return font_arrow_small_to_big;
+            return FONT_ARROW_SMALL_TO_BIG;
         else if (outfit.members_sorted_by.increment_decrement === 'decrement')
-            return font_arrow_big_to_small;
+            return FONT_ARROW_BIG_TO_SMALL;
     } else {
         return '';
     }
