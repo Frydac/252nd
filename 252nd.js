@@ -6,7 +6,7 @@
 /*global $, jQuery, console*/
 
 
-//----- TODO:
+//----- TODO:testing 
 //-- organize code better, use .then .when functions to deal with async ajax:
 //http://jqfundamentals.com/chapter/ajax-deferreds
 //http://stackoverflow.com/questions/14465177/multiple-ajax-calls-wait-for-last-one-to-load-then-execute#
@@ -67,83 +67,82 @@ function Outfit() {
 
     //array of Outfit_members where the SOE API doesn't provide detailed information
     this.members_broken_info = [];
-
-    //dont know if its ok that this is in the function, in eloquent js its outside, should move to different file and move outside maybe
-    Outfit.prototype.find_member = function (name) {
-        var result = this.members.filter(function (member) {
-            return member.name === name;
-        });
-        //I know for sure that the name is unique so the array returned by the filter function has only 1 member
-        return result[0];
-    };
-
-    //increment_decrement should be "increment" or "decrement"
-    //array_nr should be undefined if not used
-    Outfit.prototype.sort_members = function (increment_decrement, field, array_nr) {
-
-        var inverse = 0;
-        if (increment_decrement === 'increment') {
-            inverse = 1;
-        } else if (increment_decrement === 'decrement') {
-            inverse = -1;
-        }
-        var comparator = function (member1, member2) {
-            var member1_field;
-            var member2_field;
-            if (array_nr !== undefined) {
-                member1_field = member1[field][array_nr];
-                member2_field = member2[field][array_nr];
-            } else {
-                member1_field = member1[field];
-                member2_field = member2[field];
-            }
-
-            //make sure we are comparing numbers when we have to
-            if (field === 'battle_rank' ||
-                field === 'rank_ordinal' ||
-                field === 'minutes_played' ||
-                field === 'playtime_per_month') {
-                member1_field = parseInt(member1_field, 10);
-                member2_field = parseInt(member2_field, 10);
-            }
-            if (member1_field < member2_field)
-                return (-1 * inverse);
-            if (member1_field > member2_field)
-                return (1 * inverse);
-            return 0;
-        };
-        this.members.sort(comparator);
-    };
-
-    //this gets some default values to start with
-    Outfit.prototype.members_sorted_by = function () {
-        this.field = '';
-        this.array_nr = 0;
-        this.increment_decrement = '';
-    };
-
-    //this sort will depend on how the members where sorted, and will update that info
-    Outfit.prototype.sort_members_with_context = function (field, array_nr) {
-        //if it was sorted by the same field, inverse the order
-        if (this.members_sorted_by.field === field && this.members_sorted_by.array_nr == array_nr) {
-            if (this.members_sorted_by.increment_decrement === "increment")
-                this.members_sorted_by.increment_decrement = "decrement";
-            else if (this.members_sorted_by.increment_decrement === "decrement")
-                this.members_sorted_by.increment_decrement = "increment";
-        } else {
-            this.members_sorted_by.field = field;
-            this.members_sorted_by.array_nr = array_nr;
-        }
-
-        //only set this initially, else leave it as is
-        if (this.members_sorted_by.increment_decrement === undefined) {
-            this.members_sorted_by.increment_decrement = "increment";
-        }
-
-        this.sort_members(this.members_sorted_by.increment_decrement, this.members_sorted_by.field, this.members_sorted_by.array_nr);
-    };
 }
 
+//dont know if its ok that this is in the function, in eloquent js its outside, should move to different file and move outside maybe
+Outfit.prototype.find_member = function (name) {
+    var result = this.members.filter(function (member) {
+        return member.name === name;
+    });
+    //I know for sure that the name is unique so the array returned by the filter function has only 1 member
+    return result[0];
+};
+
+//increment_decrement should be "increment" or "decrement"
+//array_nr should be undefined if not used
+Outfit.prototype.sort_members = function (increment_decrement, field, array_nr) {
+
+    var inverse = 0;
+    if (increment_decrement === 'increment') {
+        inverse = 1;
+    } else if (increment_decrement === 'decrement') {
+        inverse = -1;
+    }
+    var comparator = function (member1, member2) {
+        var member1_field;
+        var member2_field;
+        if (array_nr !== undefined) {
+            member1_field = member1[field][array_nr];
+            member2_field = member2[field][array_nr];
+        } else {
+            member1_field = member1[field];
+            member2_field = member2[field];
+        }
+
+        //make sure we are comparing numbers when we have to
+        if (field === 'battle_rank' ||
+            field === 'rank_ordinal' ||
+            field === 'minutes_played' ||
+            field === 'playtime_per_month') {
+            member1_field = parseInt(member1_field, 10);
+            member2_field = parseInt(member2_field, 10);
+        }
+        if (member1_field < member2_field)
+            return (-1 * inverse);
+        if (member1_field > member2_field)
+            return (1 * inverse);
+        return 0;
+    };
+    this.members.sort(comparator);
+};
+
+//this gets some default values to start with
+Outfit.prototype.members_sorted_by = function () {
+    this.field = '';
+    this.array_nr = 0;
+    this.increment_decrement = '';
+};
+
+//this sort will depend on how the members where sorted, and will update that info
+Outfit.prototype.sort_members_with_context = function (field, array_nr) {
+    //if it was sorted by the same field, inverse the order
+    if (this.members_sorted_by.field === field && this.members_sorted_by.array_nr == array_nr) {
+        if (this.members_sorted_by.increment_decrement === "increment")
+            this.members_sorted_by.increment_decrement = "decrement";
+        else if (this.members_sorted_by.increment_decrement === "decrement")
+            this.members_sorted_by.increment_decrement = "increment";
+    } else {
+        this.members_sorted_by.field = field;
+        this.members_sorted_by.array_nr = array_nr;
+    }
+
+    //only set this initially, else leave it as is
+    if (this.members_sorted_by.increment_decrement === undefined) {
+        this.members_sorted_by.increment_decrement = "increment";
+    }
+
+    this.sort_members(this.members_sorted_by.increment_decrement, this.members_sorted_by.field, this.members_sorted_by.array_nr);
+};
 
 //class/struct declaration for each outfit member
 function Outfit_member() {
@@ -164,6 +163,7 @@ function Outfit_member() {
     //playtime_per_month[0] will be this month, playtime_per_month[1] will be the previous month and so on
     this.playtime_per_month = [];
 
+    //playtime in seconds
     //playtime_per_day[0] is yesterday, playtime_per_day[1] the day before yesterday and so on
     this.playtime_per_day = [];
 }
@@ -187,8 +187,10 @@ function initialize_document(outfit_name) {
     //inform user we are waiting for response:
     $("#outfit").html("Waiting for outfit information..");
 
+// ReSharper disable once InconsistentNaming
     var members_stat_history_REST_responses;
     //this is an async function, so it will return before the ajax response (jqXHR) is ready
+// ReSharper disable once InconsistentNaming
     var outfitinfo_memberlist_REST_response = get_api_info_outfit(outfit_name);
     //use as jquery deffered/promise object to control codeflow, the first function (only in this case)
     //will be called when the ajax call returns success. See links on top for more information on .then()
@@ -196,6 +198,7 @@ function initialize_document(outfit_name) {
 
         //first extract the outfit information and display on the webpage
         outfit = extract_outfit_information(jqXHR_data);
+// ReSharper disable once InconsistentNaming
         var outfit_HTML = create_outfit_HTML(outfit);
         $("#outfit").html(outfit_HTML);
 
@@ -270,7 +273,7 @@ function get_api_info_members_stat_history(members) {
         var response = get_api_info_n_members_stat_history(members, member_index, step_size);
         responses.push(response);
     }
-    console.log(members);
+    //console.log(members);
     return responses;
 }
 
@@ -290,7 +293,7 @@ function get_api_info_n_members_stat_history(members, index, n) {
         url: stat_history_for_char_REST_URL,
         dataType: "jsonp",
         success: function (response, text_status, jqXHR) {
-            console.log(response);
+            //console.log(response);
 
             //we asked for n chars, so loop through the response character list
             for (var char_list_index in response.character_list) {
@@ -496,30 +499,35 @@ function create_broken_members_HTML(members_broken_info) {
 }
 
 function create_member_extra_HTML(member) {
-    // console.log(member);
-    // console.log(member.name);
     var date = new Date();
     var member_HTML = "";
 
+
+    //extract function create_daily_playtimes(member)
     //todo: colspan magic number should be calculated
     member_HTML += '<tr id="' + member.name + '" ><td class="remove_right_border"></td><td class="remove_left_border" colspan="17">';
     member_HTML += "<h4>" + member.name + "</h4>";
     member_HTML += "<p> Play times of the last 31 days (eg. as far as the soe api provides)</p>";
-    member_HTML += '<table class="extra_info"><tr>';
-    for (var day_index in member.playtime_per_day) {
-        //we start on yesterday
-        date.setDate(date.getDate() - 1);
-        var playtime = member.playtime_per_day[day_index];
-        member_HTML += '<pre><td class="right_align">'
-                    //+ 'day ' + day_index + "\n "
-                    + date.toDateString().slice(0, -5) + "\n "
-                    + transform_s_to_hms(playtime)
-                    + '</td></pre>';
-        if ((parseInt(day_index) + 1) % 16 === 0) {
-            member_HTML += '</tr><tr>';
-        }
-    }
-    member_HTML += '</tr></table>';
+
+    //member_HTML += '<table class="extra_info"><tr>';
+    //for (var day_index in member.playtime_per_day) {
+    //    //we start on yesterday
+    //    date.setDate(date.getDate() - 1);
+    //    var playtime = member.playtime_per_day[day_index];
+    //    member_HTML += '<pre><td class="right_align">'
+    //                //+ 'day ' + day_index + "\n "
+    //                + date.toDateString().slice(0, -5) + "\n "
+    //                + transform_s_to_hms(playtime)
+    //                + '</td></pre>';
+    //    if ((parseInt(day_index) + 1) % 16 === 0) {
+    //        member_HTML += '</tr><tr>';
+    //    }
+    //}
+    //member_HTML += '</tr></table>';
+    //anchor for chart
+    member_HTML += '<div id="' + member.name + '_playtimes_chart" ></div>';
+    //member_HTML += '<div id="test" ></div>';
+
     // member_HTML += '<p>Some more stats, the api returned them, so why not ;)</p>';
     member_HTML += '<p></p>';
     member_HTML += '<table>';
@@ -577,11 +585,14 @@ function show_member_extra_info() {
     var member_extra_HTML = create_member_extra_HTML(member);
 
     var table_row = $(this).parent().parent();  //tr containing the button
-    table_row.after(member_extra_HTML);
-
+    table_row.after(member_extra_HTML);//.done(function () {
     $(this).html("-");
     $(this).unbind();
     $(this).on("click", hide_member_extra_info);
+
+    var member_playtimes_chart_id = member.name + "_playtimes_chart";
+    create_member_playtime_bar_chart(member, member_playtimes_chart_id);
+
 }
 
 function hide_member_extra_info() {

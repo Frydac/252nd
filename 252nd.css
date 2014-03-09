@@ -6,8 +6,12 @@
 table {
     /*border: 1px;*/
     border-collapse: collapse;
+    
 }
-
+/*this centres the table*/
+/*table.members {
+    margin: 0 auto; 
+}*/
 /*#added {
     width: 100%
 }*/
@@ -54,10 +58,13 @@ th {
 
 button{
     font-family: monospace;
-    /*background: transparent;
-    border: none !important;*/
 	font-size: 10px;
-    /*font-weight: bold;*/
     padding:0px 3px;
     margin-right: 10px;
+}
+
+button::-moz-focus-inner {
+    border:0;
+    padding:1px 1px 0px 1px;
+    margin: -1px;
 }

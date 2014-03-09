@@ -22,19 +22,33 @@
 
     </script>
 
+    <!-- load google charts API -->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1", { packages: ["corechart"] });
+        google.setOnLoadCallback(function () {
+            //TODO: set flag so chart calling code knows for sure, though probably not needed.
+            console.log("Google Charts API loaded");
+        });
+    </script>
+
     <!--load jquery to make life a bit easier-->
     <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 
     <!-- load javascript file where the magic happens -->
+    <script src="scripts/renderer.js"></script>
     <script src="252nd.js"></script>
 
     <!-- start the magic -->
     <script type="text/javascript">
         $(document).ready(function () {
             //this needs a better name :D
+            
             initialize_document(OUTFIT_NAME);
+            
         });
 
+       // create_member_playtime_bar_chart('test','chart_div');
     </script>
 </head>
 <body>
@@ -49,5 +63,6 @@
     <!-- Placeholder for members information from members with faulty api information -->
     <div id="broken_members">
     </div>
+    
 </body>
 </html>
