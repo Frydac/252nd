@@ -525,7 +525,7 @@ function create_member_extra_HTML(member) {
     //}
     //member_HTML += '</tr></table>';
     //anchor for chart
-    member_HTML += '<div id="' + member.name + '_playtimes_chart" ></div>';
+    member_HTML += '<div id="' + member.name + '_playtimes_chart" ><p>-- Placeholder for playtimes chart -- (loading)</p></div>';
     //member_HTML += '<div id="test" ></div>';
 
     // member_HTML += '<p>Some more stats, the api returned them, so why not ;)</p>';
@@ -591,7 +591,11 @@ function show_member_extra_info() {
     $(this).on("click", hide_member_extra_info);
 
     var member_playtimes_chart_id = member.name + "_playtimes_chart";
-    create_member_playtime_bar_chart(member, member_playtimes_chart_id);
+    //this makes the previous html render before the graph is rendered
+    //for a more responsive experience
+    window.setTimeout(function() {
+        return create_member_playtime_bar_chart(member, member_playtimes_chart_id);
+    }, 100);
 
 }
 

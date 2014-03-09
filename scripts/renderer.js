@@ -6,12 +6,12 @@ function create_member_playtime_bar_chart(member,id) {
     var data = google.visualization.arrayToDataTable(google_tabledata_playtimes(member, extract_day(new Date(),1)));
     
     //var dateFormatter = new google.visualization.DateFormat({formatType: 'long'} );
-    var formatter_custom2 = new google.visualization.DateFormat({ pattern: "H'h 'mm'm 'ss's'" });
-    var formatter_custom = new google.visualization.DateFormat({ pattern: "H'h 'mm'm '" });
-    formatter_custom2.format(data, 1);
-    formatter_custom.format(data, 2);
-    var formatter_long = new google.visualization.DateFormat({ formatType: 'long' });
-    formatter_long.format(data, 0);
+    var format_hour_min_sec = new google.visualization.DateFormat({ pattern: "H'h 'mm'm 'ss's'" });
+    var format_hour_min = new google.visualization.DateFormat({ pattern: "H'h 'mm'm '" });
+    format_hour_min_sec.format(data, 1);
+    format_hour_min.format(data, 2);
+    var format_long = new google.visualization.DateFormat({ formatType: 'long' });
+    format_long.format(data, 0);
 
     var options = {
         title: member.name + ', playtimes of the last 31 days',
@@ -30,17 +30,16 @@ function create_member_playtime_bar_chart(member,id) {
     chart.draw(data, options);
 }
 
+//returns an array following googles table data format
 function google_tabledata_playtimes(member, start_date) {
-    var table_data_array = [];
-
-    table_data_array[0] = ['Day', 'Playtime', { role: 'annotation' }];
-    var one_day = new Date(1000 * 60 * 60 * 24);
+    var tabledata = [];
+    tabledata[0] = ['Day', 'Playtime', { role: 'annotation' }];
     var current_date = start_date;
     for (var day in member.playtime_per_day) {
-        table_data_array[parseInt(day) + 1] = make_data_row(current_date, member.playtime_per_day[day]);
+        tabledata[parseInt(day) + 1] = make_data_row(current_date, member.playtime_per_day[day]);
         current_date = extract_day(current_date, 1);
     }
-    return table_data_array;
+    return tabledata;
 }
 
 // makes an array like:
