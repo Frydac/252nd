@@ -78,6 +78,14 @@ Outfit.prototype.find_member = function (name) {
     return result[0];
 };
 
+Outfit.prototype.find_member_by_id = function (id) {
+    var result = this.members.filter(function (member) {
+        return member.character_id === id;
+    });
+
+    return result[0]
+}
+
 //increment_decrement should be "increment" or "decrement"
 //array_nr should be undefined if not used
 Outfit.prototype.sort_members = function (increment_decrement, field, array_nr) {
@@ -187,10 +195,8 @@ function initialize_document(outfit_name) {
     //inform user we are waiting for response:
     $("#outfit").html("Waiting for outfit information..");
 
-// ReSharper disable once InconsistentNaming
     var members_stat_history_REST_responses;
     //this is an async function, so it will return before the ajax response (jqXHR) is ready
-// ReSharper disable once InconsistentNaming
     var outfitinfo_memberlist_REST_response = get_api_info_outfit(outfit_name);
     //use as jquery deffered/promise object to control codeflow, the first function (only in this case)
     //will be called when the ajax call returns success. See links on top for more information on .then()
@@ -198,7 +204,6 @@ function initialize_document(outfit_name) {
 
         //first extract the outfit information and display on the webpage
         outfit = extract_outfit_information(jqXHR_data);
-// ReSharper disable once InconsistentNaming
         var outfit_HTML = create_outfit_HTML(outfit);
         $("#outfit").html(outfit_HTML);
 
@@ -297,8 +302,8 @@ function get_api_info_n_members_stat_history(members, index, n) {
 
             //we asked for n chars, so loop through the response character list
             for (var char_list_index in response.character_list) {
-                var current_members_index = index + parseInt(char_list_index);
-                var current_member = members[current_members_index];
+                //var current_members_index = index + parseInt(char_list_index);
+                var current_member = outfit.find_member_by_id(response.character_list[char_list_index].character_id)
                 if (current_member.character_id !== response.character_list[char_list_index].character_id) {
                     console.log("characters returned arent in the same order as in the query! (or my code is bugged ;) )");
                 }
@@ -350,6 +355,11 @@ function extract_member_list_information(ajaxResponse, members, members_broken_i
 
         //for some reason the member information in the ajax response is not always defined!!
         if (response_member.name !== undefined) {
+
+            //for debug reasons
+            //if (response_member.name.first_lower != 'frydac')
+            //    continue
+
             member.character_id = response_member.character_id;
             member.name = response_member.name.first;
             member.battle_rank = response_member.battle_rank.value;
