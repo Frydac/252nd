@@ -517,7 +517,7 @@ function create_member_extra_HTML(member) {
     //todo: colspan magic number should be calculated
     member_HTML += '<tr id="' + member.name + '" ><td class="remove_right_border"></td><td class="remove_left_border" colspan="17">';
     member_HTML += "<h4>" + member.name + "</h4>";
-    member_HTML += "<p> Play times of the last 31 days (eg. as far as the soe api provides)</p>";
+    member_HTML += "<p> Play times of the last 31 days (i.e. as far as the soe api provides)</p>";
 
     //member_HTML += '<table class="extra_info"><tr>';
     //for (var day_index in member.playtime_per_day) {
