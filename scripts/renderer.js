@@ -2,8 +2,11 @@
 /// <reference path="../252nd.js" />
 
 //not covered by unittests, it draws a google chart to html element with specified id
-function create_member_playtime_bar_chart(member,id) {
-    var data = google.visualization.arrayToDataTable(google_tabledata_playtimes(member, extract_day(new Date(),1)));
+function create_member_playtime_bar_chart(member, id) {
+    var now = new Date();
+    var now_utc_plus_12 = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() + 12, now.getUTCMinutes(), now.getUTCSeconds());
+
+    var data = google.visualization.arrayToDataTable(google_tabledata_playtimes(member, extract_day(now_utc_plus_12,1)));
     
     //var dateFormatter = new google.visualization.DateFormat({formatType: 'long'} );
     var format_hour_min_sec = new google.visualization.DateFormat({ pattern: "H'h 'mm'm 'ss's'" });
