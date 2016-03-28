@@ -3,6 +3,41 @@
     font-size : 12px;
 }
 
+/*.clearfix {*/
+    /*overflow: auto;*/
+/*}*/
+
+div#input_container {
+    /*position:relative;*/
+    /*padding: 10px;*/
+    /*margin: 10px;*/
+    /*overflow:auto;*/
+}
+
+div#outfit_input_widget {
+    width: 100px;
+    padding: 10px;
+    /*float:left;*/
+    display: inline-block;
+    /*vertical-align: middle;*/
+}
+input#outfit_input {
+    /*display: block;*/
+    /*width: 6em;*/
+    margin-top: 3px;
+    width: 100%;
+}
+
+button#get_outfit_info {
+    padding: 2px;
+    display: inline-block;
+    /*vertical-align: middle;*/
+}
+
+/*div#outfit {*/
+    /*clear:left;*/
+/*}*/
+
 table {
     /*border: 1px;*/
     border-collapse: collapse;
@@ -51,12 +86,11 @@ th {
     padding:3px 5px;
 }
 
-    th:hover {
-        cursor:pointer;
-    }
+th:hover {
+    cursor:pointer;
+}
 
-
-button{
+button.show_extra{
     font-family: monospace;
 	font-size: 10px;
     padding:0px 3px;

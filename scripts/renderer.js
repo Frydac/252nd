@@ -47,13 +47,16 @@ function google_tabledata_playtimes(member, start_date) {
 
 // makes an array like:
 //["Sat Mar 08 2014",Date,Date]
-function make_data_row(date,playtime_in_s) {
+function make_data_row(date, playtime_in_s) {
     var data_row = [];
 
     data_row[0] = date.toDateString();
 
-    data_row[1] = new Date(0,0,0);
-    data_row[1].setSeconds(playtime_in_s);
+    //TODO: this has always worked, but suddenly the bars are reversed. Find out why, how, maybe a bug in the bar charts?
+    //data_row[1] = new Date(0,0,0);
+    //data_row[1].setSeconds(playtime_in_s);
+
+    data_row[1] = parseInt(playtime_in_s, 10);
 
     data_row[2] = new Date(0, 0, 0);
     data_row[2].setSeconds(playtime_in_s);

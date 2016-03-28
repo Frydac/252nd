@@ -33,10 +33,11 @@
     </script>
 
     <!--load jquery to make life a bit easier-->
-    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
 
     <!-- load javascript file where the magic happens -->
     <script src="scripts/renderer.js"></script>
+    <script src="outfit_model.js"></script>
     <script src="252nd.js"></script>
 
     <!-- start the magic -->
@@ -52,6 +53,15 @@
     </script>
 </head>
 <body>
+
+    <div id="input_container">
+        <h2>Outfit members: hours in game</h2>
+        <div id="outfit_input_widget">
+            <label for="outfit_input">Outfit alias:</label>
+            <input type="text" name="outfit_intput" id="outfit_input" value="252v">
+        </div>
+        <button name="button" id="get_outfit_info">Get info</button>
+    </div>
     <!-- Placeholder for outfit information -->
     <div id="outfit">
     </div>

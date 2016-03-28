@@ -1,5 +1,6 @@
 ﻿//This is my first Javascript project ever, so I'm learning on the go
 //I put a lot of comments everywhere, mainly so hopefully I can understand it later myself
+//and refactor it to something more readable, not in need of so much comments
 
 //-----JSLINT
 /*jslint browser: true*/
@@ -19,18 +20,18 @@
 
 //----- ideas
 //-- its possible to get which items a player has by using:
-//  http://census.soe.com/get/ps2:v2/character/?name.first_lower=dryver&c:resolve=item_full
+//  http://census.daybreakgames.com/get/ps2:v2/character/?name.first_lower=dryver&c:resolve=item_full
 
 //----- usefull links:
-//soe rest api information (incomplete and faulty information there :s )
-//http://census.soe.com/
+//daybreakgames rest api information (incomplete and faulty information there :s )
+//http://census.daybreakgames.com/
 //
 //test your rest queries here
 //http://www.planetside-universe.com/api/census.php
 
 //----- Font info
-var FONT_ARROW_SMALL_TO_BIG = ' &#x25b2 ';
-var FONT_ARROW_BIG_TO_SMALL = ' &#x25BC ';
+var FONT_ARROW_SMALL_TO_BIG = ' &#x25b2 '; //▲
+var FONT_ARROW_BIG_TO_SMALL = ' &#x25BC '; //▼
 
 //for testing purposes
 //frydac char id: "5428010618030935617"
@@ -51,132 +52,13 @@ var OUTFIT_NAME = "252nd Spec Ops";
 //if you want to check other outfits edit this variable, for example uncomment following line
 //outfit_name = "INI Elite";
 
-//class/struct declaration for outfit information
-function Outfit() {
-    this.name = "";
-    this.alias = "";
-    this.time_created_date = "";
-    this.member_count = "";
 
-    //new ones
-    //resolve leader_name
-    this.leader_name = "";
 
-    //array of Outfit_members with good information
-    this.members = [];
+//$.getScript("outfit_model.js", function(){
+//    alert("script loaded");
+//});
 
-    //array of Outfit_members where the SOE API doesn't provide detailed information
-    this.members_broken_info = [];
-}
-
-//dont know if its ok that this is in the function, in eloquent js its outside, should move to different file and move outside maybe
-Outfit.prototype.find_member = function (name) {
-    var result = this.members.filter(function (member) {
-        return member.name === name;
-    });
-    //I know for sure that the name is unique so the array returned by the filter function has only 1 member
-    return result[0];
-};
-
-Outfit.prototype.find_member_by_id = function (id) {
-    var result = this.members.filter(function (member) {
-        return member.character_id === id;
-    });
-
-    return result[0]
-}
-
-//increment_decrement should be "increment" or "decrement"
-//array_nr should be undefined if not used
-Outfit.prototype.sort_members = function (increment_decrement, field, array_nr) {
-
-    var inverse = 0;
-    if (increment_decrement === 'increment') {
-        inverse = 1;
-    } else if (increment_decrement === 'decrement') {
-        inverse = -1;
-    }
-    var comparator = function (member1, member2) {
-        var member1_field;
-        var member2_field;
-        if (array_nr !== undefined) {
-            member1_field = member1[field][array_nr];
-            member2_field = member2[field][array_nr];
-        } else {
-            member1_field = member1[field];
-            member2_field = member2[field];
-        }
-
-        //make sure we are comparing numbers when we have to
-        if (field === 'battle_rank' ||
-            field === 'rank_ordinal' ||
-            field === 'minutes_played' ||
-            field === 'playtime_per_month') {
-            member1_field = parseInt(member1_field, 10);
-            member2_field = parseInt(member2_field, 10);
-        }
-        if (member1_field < member2_field)
-            return (-1 * inverse);
-        if (member1_field > member2_field)
-            return (1 * inverse);
-        return 0;
-    };
-    this.members.sort(comparator);
-};
-
-//this gets some default values to start with
-Outfit.prototype.members_sorted_by = function () {
-    this.field = '';
-    this.array_nr = 0;
-    this.increment_decrement = '';
-};
-
-//this sort will depend on how the members where sorted, and will update that info
-Outfit.prototype.sort_members_with_context = function (field, array_nr) {
-    //if it was sorted by the same field, inverse the order
-    if (this.members_sorted_by.field === field && this.members_sorted_by.array_nr == array_nr) {
-        if (this.members_sorted_by.increment_decrement === "increment")
-            this.members_sorted_by.increment_decrement = "decrement";
-        else if (this.members_sorted_by.increment_decrement === "decrement")
-            this.members_sorted_by.increment_decrement = "increment";
-    } else {
-        this.members_sorted_by.field = field;
-        this.members_sorted_by.array_nr = array_nr;
-    }
-
-    //only set this initially, else leave it as is
-    if (this.members_sorted_by.increment_decrement === undefined) {
-        this.members_sorted_by.increment_decrement = "increment";
-    }
-
-    this.sort_members(this.members_sorted_by.increment_decrement, this.members_sorted_by.field, this.members_sorted_by.array_nr);
-};
-
-//class/struct declaration for each outfit member
-function Outfit_member() {
-    this.name = "";
-    this.character_id = 0;
-    this.battle_rank = 0;
-    this.rank_ordinal = 0;
-    this.rank = "";
-    this.member_since_date = "";
-    this.creation_date = "";
-    this.last_login_date = "";
-    this.last_save_date = "";
-
-    //new ones
-    this.minutes_played = 0;
-
-    //the same numbering as SOE will be used:
-    //playtime_per_month[0] will be this month, playtime_per_month[1] will be the previous month and so on
-    this.playtime_per_month = [];
-
-    //playtime in seconds
-    //playtime_per_day[0] is yesterday, playtime_per_day[1] the day before yesterday and so on
-    this.playtime_per_day = [];
-}
-
-//because the ajax call is asynchronous we have to wait until all queries are done, 
+//because the ajax call is asynchronous we have to wait until all queries are done,
 //I do it by adding to this counter when a member is updated, we know how many members there are.
 var member_playtimeinfo_done_counter = 0;
 
@@ -241,7 +123,7 @@ function sort_members_by_table_header() {
 
 // makes the outfit ajax call and returns the jQuery XML HTTP Request object
 function get_api_info_outfit(outfit_name) {
-    var outfitinfo_memberlist_REST_URL = "http://census.soe.com/json/s:252nd/get/ps2:v2/outfit/?name="
+    var outfitinfo_memberlist_REST_URL = "http://census.daybreakgames.com/json/s:252nd/get/ps2:v2/outfit/?name="
         + outfit_name
         + "&c:resolve=leader_name, member_character";
 
@@ -283,12 +165,14 @@ function get_api_info_members_stat_history(members) {
 }
 
 function get_api_info_n_members_stat_history(members, index, n) {
+
+    //create string with comma separated char ids for query
     var n_member_char_ids = "";
     for (var i = index; i < index + n && i < members.length; i++) {
         n_member_char_ids += members[i].character_id + ",";
     }
 
-    var stat_history_for_char_REST_URL = "http://census.soe.com/s:252nd/get/ps2:v2/character/?character_id="
+    var stat_history_for_char_REST_URL = "http://census.daybreakgames.com/s:252nd/get/ps2:v2/character/?character_id="
     + n_member_char_ids
     + "&c:resolve=stat_history";
 
@@ -326,7 +210,6 @@ function get_api_info_n_members_stat_history(members, index, n) {
                     }
                 }
             }
-
             //update counter in webpage to inform user
             update_get_stat_history_counter(n, members);
         }
@@ -335,7 +218,7 @@ function get_api_info_n_members_stat_history(members, index, n) {
     return response;
 }
 
-//extracts member information and puts in the array members if they are ok, and in the array members_broken_info if they ar not ok
+//extracts member information from ajaxResponse datastructure and puts in the array members if they are ok, and in the array members_broken_info if they ar not ok
 function extract_member_list_information(ajaxResponse, members, members_broken_info) {
     //member info to extract:
     //character_id, name, battle_rank, rank_ordinal + rank, member_since_date, times.creation_date, times.last_login_date, times.last_save_date
@@ -517,7 +400,8 @@ function create_member_extra_HTML(member) {
     //todo: colspan magic number should be calculated
     member_HTML += '<tr id="' + member.name + '" ><td class="remove_right_border"></td><td class="remove_left_border" colspan="17">';
     member_HTML += "<h4>" + member.name + "</h4>";
-    member_HTML += "<p> Play times of the last 31 days (i.e. as far as the soe api provides)</p>";
+    member_HTML += "<p> Play times of the last 31 days (i.e. as far as the daybreakgames api provides). Note that it may be off by one day, I haven't taken the time to figure out at exactly what time SOE decides its a new day." +
+    "</br> Also note that when the last login date is too old (dont know exactly how old, a few months), there may be faulty information. And in general the information might be faulty. Every name is also a link to dasanfal to double check if needed.</p>";
 
     //member_HTML += '<table class="extra_info"><tr>';
     //for (var day_index in member.playtime_per_day) {
@@ -605,7 +489,7 @@ function show_member_extra_info() {
     //for a more responsive experience
     window.setTimeout(function() {
         return create_member_playtime_bar_chart(member, member_playtimes_chart_id);
-    }, 100);
+    }, 5000);
 
 }
 
